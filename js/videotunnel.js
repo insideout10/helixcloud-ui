@@ -16,6 +16,7 @@ $( document ).ready(function() {
 	var videosPerColumn = 4;
 	var tunnelRadius = nCATEGORIES*180;
 	var tunnelHeight = tunnelRadius/2;	//da sistemare
+	var panelWidth = Math.floor(2*3.14*tunnelRadius/nCATEGORIES);
 	var deltaK = 0.02;
 	var deltaR = 0.0;
 	var deltaH = 0.0;
@@ -88,53 +89,32 @@ $( document ).ready(function() {
 		document.body.appendChild( rendererCSS.domElement );
 
 		var sector = 2.0 * 3.14 / nCATEGORIES;
-		var thick = 5;
 		for(var p=0; p<nCATEGORIES; p++) {
 			var panelElement = generatePanel(p);
 			var panel = new THREE.CSS3DObject( panelElement );
 		
 			angle = -sector * p;	//negativo per disporli in senso orario
-			panel.position.x = Math.cos(angle) * (tunnelRadius + thick);
-			panel.position.y = Math.sin(angle) * (tunnelRadius + thick);
+			panel.position.x = Math.cos(angle) * (tunnelRadius);
+			panel.position.y = Math.sin(angle) * (tunnelRadius);
 			panel.rotation.x = Math.PI/2.0;
 			panel.up.set(0,0,1);
 			panel.lookAt(new THREE.Vector3());
 		
 			for(var v=0;v<nVideos;v++) {
-				var videoElement = generateThumb( p*nVideos + v, panelElement)
-				//panelElement.appendChild(videoElement);
-				var video = new THREE.CSS3DObject( videoElement );
-			
+				var videoElement = generateThumb( p*nVideos + v, panelElement);
+				var video = new THREE.CSS3DObject( videoElement );	
 				
-				video.position.x = panel.position.x;
-				video.position.y = panel.position.y;
-				video.position.z = panel.position.z;
-				video.rotation.x = panel.rotation.x;
-				video.rotation.y = panel.rotation.y;
-				video.rotation.z = panel.rotation.z;
-				/*
-				var aIndex = v % videosPerRow;
-				var vAngle = angle + (sector/2) - (sector*aIndex/videosPerRow) - sector/(2*videosPerRow);
-				video.position.x = Math.cos(vAngle)*tunnelRadius;
-				video.position.y = Math.sin(vAngle)*tunnelRadius;
-				var zIndex = Math.floor(v/videosPerRow);
+				var wIndex = v % videosPerRow;
+				video.position.x = -(panelWidth/2) + (panelWidth*wIndex/videosPerRow) + panelWidth/(2*videosPerRow);
+				
+				var hIndex = Math.floor(v/videosPerRow);
 				var tunnelH = tunnelHeight - (tunnelHeight/videosPerColumn);
-				video.position.z = (tunnelH/2) - (tunnelH*zIndex/videosPerColumn) - tunnelH/(2*videosPerColumn);
-			
-				video.rotation.x = panel.rotation.x;
-				video.rotation.y = panel.rotation.y;
-				video.rotation.z = panel.rotation.z;			
-			
-				video.up.set(0,0,1);
-				video.lookAt(new THREE.Vector3());
-				*/
+				video.position.y = (tunnelH/2) - (tunnelH*hIndex/videosPerColumn) - tunnelH/(2*videosPerColumn);	
 				
-				
-				
-				//video.matrixAutoUpdate = false;
-				//video.updateMatrix();
 				panel.add(video);
-				videos.push(video);
+				videos.push(video);					
+								
+				
 			}
 			//video.applyMatrix( panel.matrixWorld );
 			sceneCSS.add( panel );
@@ -148,7 +128,10 @@ $( document ).ready(function() {
 		camera = new THREE.PerspectiveCamera( fov, window.innerWidth/window.innerHeight, 1, tunnelRadius*10 );
 		camera.position.z += tunnelHeight/3.0;
 		camera.rotation.x += Math.PI/2.0 + cameraInclination;
-	
+		
+		sceneCSS.add(camera);
+		sceneGL.add(camera);
+		
 		//window resize event
 		window.addEventListener('resize', function() {
 		  rendererCSS.setSize(window.innerWidth, window.innerHeight);
@@ -193,7 +176,6 @@ $( document ).ready(function() {
 	//HTML stuff
 
 	function generatePanel(catid) {
-		var panelWidth = Math.floor(2*3.14*tunnelRadius/nCATEGORIES) + 'px';
 		var element = document.createElement( 'div' );
 		element.className = 'panel';
 		element.style.height = tunnelHeight;
