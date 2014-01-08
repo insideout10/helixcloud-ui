@@ -106,7 +106,12 @@ $( document ).ready(function() {
 				var video = new THREE.CSS3DObject( videoElement );
 			
 				
-				
+				video.position.x = panel.position.x;
+				video.position.y = panel.position.y;
+				video.position.z = panel.position.z;
+				video.rotation.x = panel.rotation.x;
+				video.rotation.y = panel.rotation.y;
+				video.rotation.z = panel.rotation.z;
 				/*
 				var aIndex = v % videosPerRow;
 				var vAngle = angle + (sector/2) - (sector*aIndex/videosPerRow) - sector/(2*videosPerRow);
