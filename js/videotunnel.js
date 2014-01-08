@@ -108,15 +108,15 @@ $( document ).ready(function() {
 				video.position.x = -(panelWidth/2) + (panelWidth*wIndex/videosPerRow) + panelWidth/(2*videosPerRow);
 				
 				var hIndex = Math.floor(v/videosPerRow);
-				var tunnelH = tunnelHeight - (tunnelHeight/videosPerColumn);
+				var tunnelH = tunnelHeight - (tunnelHeight/videosPerColumn)/2;
 				video.position.y = (tunnelH/2) - (tunnelH*hIndex/videosPerColumn) - tunnelH/(2*videosPerColumn);	
 				
-				panel.add(video);
-				videos.push(video);					
-								
+				video.position.z +=5;	//just a little before the panel
 				
+				panel.add(video);
+				videos.push(video);
 			}
-			//video.applyMatrix( panel.matrixWorld );
+			
 			sceneCSS.add( panel );
 			panels.push(panel);
 		}
@@ -159,11 +159,7 @@ $( document ).ready(function() {
 		camera.rotation.y -= deltaR;	
 		//camera.rotation.x += Math.PI/2.0 + cameraInclination;
 	
-		camera.position.z += deltaH;
-	
-	
-		//camera.lookAt(videos[3].position);
-		//camera.lookAt(cube.position);
+		camera.position.z += deltaH;	
 	
 		render();
 	}
@@ -226,8 +222,7 @@ $( document ).ready(function() {
 		
 		//ruota pannelli
 		for(var p=0; p<nCATEGORIES; p++) {
-			panels[p].rotation.z += Math.PI/100;
-			console.log(panels[p].children);
+			panels[p].rotation.y += Math.PI;
 		}
 	}
 
@@ -243,24 +238,34 @@ $( document ).ready(function() {
 			zoomed = true;
 	
 			var click = (e.currentTarget.idName).replace('thumbdiv','');
+			var videoWidth = $('.thumbdiv').width();
+			var videoHeight = $('.thumbdiv').height();
 			//get 3D coords of clicked video
 		
 			// DA ANIMARE
-			camera.position.z = videos[click].position.z;
+			
+			//metti la camera a altezza video
+			var videoWorldPosition = videos[click].localToWorld( new THREE.Vector3() );
+			camera.position.z = videoWorldPosition.z;
+			
+			//la camera guarda verso il video
 			camera.up.set(0,0,1);
-			camera.lookAt( videos[click].position );
-		
-		
-			//camera.fov *= 0.7;
-			var distance = (videos[click].position).distanceTo(camera.position);
-			var height = tunnelHeight/videosPerColumn;
-			console.log(height);
-			//camera.fov = 2 * Math.atan( height/(2 * dist) ) * ( 180/Math.PI );
+			camera.lookAt( videoWorldPosition );
+			
+			//sposta la camera verso il video
+			var zoomFactor = 1.5;
+ 			var distance = (videoWorldPosition).distanceTo(camera.position);
+			var height = videoHeight*zoomFactor;
+			//ORIGINAL fov FORMULA: /// camera.fov = 2 * Math.atan( height/(2 * dist) ) * ( 180/Math.PI );
 			var optimalDistance = height/ ( 2 * Math.tan( (Math.PI/180) * (camera.fov/2) ))
-			camera.translateZ( - distance + optimalDistance); 
-		
-		  	//camera.updateProjectionMatrix();
+			camera.translateZ( - distance + optimalDistance);
+			
+			//il video guarda verso la camera	  	
+		  	var cameraToPanel = videos[click].parent.worldToLocal( camera.position.clone() );
+		  	videos[click].lookAt( cameraToPanel );
 		  	
+		  	//il video si sposta verso la camera
+		  	videos[click].translateZ(videoWidth/2);
 		  	
 		  	//CREARE UNA DIV A PARTE O SOSTITUIRE SOLO I CONTENUTI?
 		  	/*var element = document.createElement('div');*/
