@@ -1,0 +1,105 @@
+body {
+	margin:0;
+	padding:0;
+	width:100%;
+	height:100%;
+}
+
+canvas {
+	z-index:0;
+	width: 100%; height: 100%;
+}
+
+div {
+	/*border-style:solid;*/
+}
+
+h1 {
+	text-align: center;
+}
+
+video {
+	width:100%;
+	height:100%;
+	background-color:black;
+}
+
+.panel {
+	background-color:rgba(250,250,250,0.3);
+}
+
+.thumbdiv {
+	/*height:90%;
+	width:90%;
+	margin: auto auto;*/
+	cursor:pointer;
+}
+.thumbtitle {
+	margin: 0 0 0 5%;
+}
+.thumbimage {
+	width:100%;
+	height:80%;
+	/*background-image:url(./gattino.jpg);*/
+	background-size:100% 100%;
+}
+.playicon {
+	display:inline-block;
+	width: 30%;
+	height: 30%;
+	background-image:url(./play.png);
+	background-size:100% 100%;
+	margin: 0 0 0 0;
+}
+.thumbduration {
+	display:inline-block;
+	padding: 2px;
+	color:white;
+	background-color:rgba(0,0,0,0.6);
+	float:right;
+}
+.thumbdescription {
+	color:white;
+	text-align:center;
+	margin: 0 0 0 0; 
+}
+
+
+
+
+
+
+#header {
+	position:absolute;
+	z-index:1;
+	width:100%;
+	height:30;
+	float:left;
+}
+
+#searchbox {
+	width:50%;
+	padding: 3;
+	position:relative;
+	margin: auto auto;
+	background-color:gray;
+}
+
+#searchinput {
+	width:75%;
+	height:100%;
+	color: gray;
+	background-color:white;
+	display:inline-block;
+	resize:none;
+}
+
+#searchbutton {
+	width:20%;
+	padding:1;
+	color:white;
+	background-color:black;
+	display:inline-block;
+	float:right;
+}
+
