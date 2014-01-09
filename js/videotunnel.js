@@ -9,14 +9,17 @@ $( document ).ready(function() {
 	var cube;
 	var panels = [];
 	var videos = [];
-
-	var nCATEGORIES = 13;
+	
+	var nCATEGORIES =20;
+	var panelWidth = 2000;	//in pixels
+	var tunnelRadius = panelWidth*nCATEGORIES/(Math.PI*2);
+	var tunnelHeight = panelWidth;	//da sistemare
+	
 	var nVideos = 10;
 	var videosPerRow = 3;
 	var videosPerColumn = 4;
-	var tunnelRadius = nCATEGORIES*180;
-	var tunnelHeight = tunnelRadius/2;	//da sistemare
-	var panelWidth = Math.floor(2*3.14*tunnelRadius/nCATEGORIES);
+
+	
 	var deltaK = 0.02;
 	var deltaR = 0.0;
 	var deltaH = 0.0;
@@ -120,13 +123,17 @@ $( document ).ready(function() {
 			sceneCSS.add( panel );
 			panels.push(panel);
 		}
+		
 	}
 
 	function initCamera() {
-		//fitted from http://www.xuru.org/rt/PR.asp#Manually with four points (can be improoved)
-		fov = 0.07*(Math.pow(nCATEGORIES,2)) - (3.8*nCATEGORIES) + 58.375;
-		camera = new THREE.PerspectiveCamera( fov, window.innerWidth/window.innerHeight, 1, tunnelRadius*10 );
-		camera.position.z += tunnelHeight/3.0;
+	
+		var fov = getOptimalFov();
+		camera = new THREE.PerspectiveCamera( fov, window.innerWidth/window.innerHeight, 1, tunnelRadius*5 );
+		
+		panels[0].updateMatrixWorld();		//su questa riga ho perso una mattina
+		var videoWorldPosition = videos[0].localToWorld( new THREE.Vector3() );
+		camera.position.z = videoWorldPosition.z;
 		camera.rotation.x += Math.PI/2.0 + cameraInclination;
 		
 		sceneCSS.add(camera);
@@ -137,8 +144,26 @@ $( document ).ready(function() {
 		  rendererCSS.setSize(window.innerWidth, window.innerHeight);
 		  rendererGL.setSize(window.innerWidth, window.innerHeight);
 		  camera.aspect = window.innerWidth / window.innerHeight;
+		  camera.fov = getOptimalFov();
 		  camera.updateProjectionMatrix();
 		});
+	}
+	
+	function getOptimalFov() {
+		
+		var wh = window.innerHeight;
+		var ww = window.innerWidth;
+		var fovHeight;
+		var zoomOut = 1.3;
+		
+		if(wh > ww)
+			fovHeight = zoomOut * tunnelHeight * wh/ww;
+		else
+			fovHeight = zoomOut * tunnelHeight / ww*wh;
+
+		//ORIGINAL fov FORMULA: /// camera.fov = 2 * Math.atan( height/(2 * dist) ) * ( 180/Math.PI );
+		var fov = 2 * Math.atan( fovHeight/(2*tunnelRadius) ) * ( 180/Math.PI );
+		return fov;
 	}
 
 	function animate() {
@@ -159,8 +184,8 @@ $( document ).ready(function() {
 		camera.rotation.y -= deltaR;	
 		//camera.rotation.x += Math.PI/2.0 + cameraInclination;
 	
-		camera.position.z += deltaH;	
-	
+		camera.position.z += deltaH;
+		
 		render();
 	}
 
@@ -253,7 +278,8 @@ $( document ).ready(function() {
 			camera.lookAt( videoWorldPosition );
 			
 			//sposta la camera verso il video
-			var zoomFactor = 1.5;
+			var zoomFactor = 2;
+			//console.log(videoHeight);
  			var distance = (videoWorldPosition).distanceTo(camera.position);
 			var height = videoHeight*zoomFactor;
 			//ORIGINAL fov FORMULA: /// camera.fov = 2 * Math.atan( height/(2 * dist) ) * ( 180/Math.PI );
@@ -265,7 +291,7 @@ $( document ).ready(function() {
 		  	videos[click].lookAt( cameraToPanel );
 		  	
 		  	//il video si sposta verso la camera
-		  	videos[click].translateZ(videoWidth/2);
+		  	videos[click].translateZ(videoWidth);
 		  	
 		  	//CREARE UNA DIV A PARTE O SOSTITUIRE SOLO I CONTENUTI?
 		  	/*var element = document.createElement('div');*/
@@ -337,7 +363,7 @@ $( document ).ready(function() {
 				deltaR = deltaK;
 			if(e.which == 40)
 				deltaH = 500*(-deltaK);
-		}
+		}		
 	});
 
 	//Touch
