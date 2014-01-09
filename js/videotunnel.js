@@ -10,7 +10,7 @@ $( document ).ready(function() {
 	var panels = [];
 	var videos = [];
 	
-	var nCATEGORIES =20;
+	var nCATEGORIES =10;
 	var panelWidth = 2000;	//in pixels
 	var tunnelRadius = panelWidth*nCATEGORIES/(Math.PI*2);
 	var tunnelHeight = panelWidth;	//da sistemare
@@ -18,14 +18,15 @@ $( document ).ready(function() {
 	var nVideos = 10;
 	var videosPerRow = 3;
 	var videosPerColumn = 4;
-
 	
 	var deltaK = 0.02;
 	var deltaR = 0.0;
 	var deltaH = 0.0;
 
 	var zoomed = false;
-
+	var cameraBeforeZooming;
+	var videoBeforeZooming;
+	var zoomedVideo;
 
 
 
@@ -122,6 +123,7 @@ $( document ).ready(function() {
 			
 			sceneCSS.add( panel );
 			panels.push(panel);
+
 		}
 		
 	}
@@ -131,10 +133,12 @@ $( document ).ready(function() {
 		var fov = getOptimalFov();
 		camera = new THREE.PerspectiveCamera( fov, window.innerWidth/window.innerHeight, 1, tunnelRadius*5 );
 		
-		panels[0].updateMatrixWorld();		//su questa riga ho perso una mattina
-		var videoWorldPosition = videos[0].localToWorld( new THREE.Vector3() );
+		panels[1].updateMatrixWorld();		//su questa riga ho perso una mattina
+		var videoWorldPosition = videos[11].localToWorld( new THREE.Vector3() );
 		camera.position.z = videoWorldPosition.z;
-		camera.rotation.x += Math.PI/2.0 + cameraInclination;
+		//camera.rotation.x += Math.PI/2.0 + cameraInclination;
+		camera.up.set(0,0,1);
+		camera.lookAt(videoWorldPosition);
 		
 		sceneCSS.add(camera);
 		sceneGL.add(camera);
@@ -237,8 +241,25 @@ $( document ).ready(function() {
 
 
 	//ANIMATIONS
-	function zoomToPanel(e) {
+	function zoomToVideo(e) {
 
+	}
+	
+	function zoomOutVideo(e){
+	
+		camera.position = cameraBeforeZooming.position;
+		camera.rotation = cameraBeforeZooming.rotation;
+		
+		videos[zoomedVideo].position = videoBeforeZooming.position;
+		videos[zoomedVideo].rotation = videoBeforeZooming.rotation;
+		//console.log( $(videos[zoomedVideo].element).children('video') );
+		$('video').remove();
+		//var videoDivId = '#thumbdiv' + zoomedVideo;
+		//console.log(videoDivId);
+		//console.log($('#thumbdiv9').parent());
+
+		
+		zoomed = false;
 	}
 
 	function displaySearchResults( query ) {
@@ -257,12 +278,16 @@ $( document ).ready(function() {
 
 	//jQuery EVENTS
 	$('.thumbdiv').on('click', function(e){
-		zoomToPanel(e);
+		zoomToVideo(e);
 		if(!zoomed)
 		{
 			zoomed = true;
+			cameraBeforeZooming = camera.clone();
 	
 			var click = (e.currentTarget.idName).replace('thumbdiv','');
+			zoomedVideo = click;
+			videoBeforeZooming = videos[click].clone();
+			
 			var videoWidth = $('.thumbdiv').width();
 			var videoHeight = $('.thumbdiv').height();
 			//get 3D coords of clicked video
@@ -363,7 +388,10 @@ $( document ).ready(function() {
 				deltaR = deltaK;
 			if(e.which == 40)
 				deltaH = 500*(-deltaK);
-		}		
+		}
+		else {
+			zoomOutVideo();
+		}
 	});
 
 	//Touch
@@ -397,10 +425,14 @@ $( document ).ready(function() {
 	});
 
 	Hammer(document.body).on('tap', function(e) {
-		zoomToPanel(e);
+		zoomToVideo(e);
 	});
 
-
+	Hammer(document.body).on('swipe', function(e) {
+		if(zoomed) {
+			zoomOutVideo(e);
+		}
+	});
 
 //end of $(document).ready()
 });
