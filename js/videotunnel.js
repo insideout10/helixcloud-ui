@@ -33,6 +33,7 @@ $( document ).ready(function() {
 	initCanvas();
 	initCSS3D();
 	initCamera();
+	initTweens();
 	animate();
 
 	function initCanvas() {
@@ -169,26 +170,36 @@ $( document ).ready(function() {
 		var fov = 2 * Math.atan( fovHeight/(2*tunnelRadius) ) * ( 180/Math.PI );
 		return fov;
 	}
+	
+	function initTweens() {
+		var tween = new TWEEN.Tween();
+	}
 
 	function animate() {
 
 		requestAnimationFrame( animate );
 	
+		if(!zoomed) {
+			//controls smoothing (OCCHIO AI CALCOLI SULLO 0)
+			if(Math.abs(deltaR) > 0.00001)
+				deltaR *= 0.90;
+			else
+				deltaR = 0.0;
+			if(Math.abs(deltaH) > 0.00001)
+				deltaH *= 0.90;
+			else
+				deltaH *= 0.0;
 	
-		//controls smoothing (OCCHIO AI CALCOLI SULLO 0)
-		if(Math.abs(deltaR) > 0.00001)
-			deltaR *= 0.90;
-		else
-			deltaR = 0.0;
-		if(Math.abs(deltaH) > 0.00001)
-			deltaH *= 0.90;
-		else
-			deltaH *= 0.0;
+			camera.rotation.y -= deltaR;	
+			//camera.rotation.x += Math.PI/2.0 + cameraInclination;
 	
-		camera.rotation.y -= deltaR;	
-		//camera.rotation.x += Math.PI/2.0 + cameraInclination;
-	
-		camera.position.z += deltaH;
+			camera.position.z += deltaH;
+		}
+		else {
+			//animations with disabled controls
+			TWEEN.update();
+		}
+		
 		
 		render();
 	}
@@ -311,12 +322,6 @@ $( document ).ready(function() {
 			var zoomFactor = 5;
 			var ratio = window.innerWidth / window.innerHeight;
 			var height = videoHeight / ratio * zoomFactor;
-			
-			
-			
-			
-			
-			
 			//ORIGINAL fov FORMULA: /// camera.fov = 2 * Math.atan( height/(2 * dist) ) * ( 180/Math.PI );
 			var optimalDistance = height/ ( 2 * Math.tan( (Math.PI/180) * (camera.fov/2) ))
 			camera.translateZ( - distance + optimalDistance);
