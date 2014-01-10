@@ -71,13 +71,13 @@ video {
 
 #header {
 	position:absolute;
-	z-index:1;
 	width:100%;
 	height:30;
 	float:left;
 }
 
 #searchbox {
+	z-index:1;
 	width:50%;
 	padding: 3;
 	position:relative;

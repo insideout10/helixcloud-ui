@@ -28,12 +28,11 @@ $( document ).ready(function() {
 	var videoBeforeZooming;
 	var zoomedVideo;
 
-
+	var zoomTween;
 
 	initCanvas();
 	initCSS3D();
 	initCamera();
-	initTweens();
 	animate();
 
 	function initCanvas() {
@@ -98,12 +97,15 @@ $( document ).ready(function() {
 			var panelElement = generatePanel(p);
 			var panel = new THREE.CSS3DObject( panelElement );
 		
-			angle = -sector * p;	//negativo per disporli in senso orario
-			panel.position.x = Math.cos(angle) * (tunnelRadius);
-			panel.position.y = Math.sin(angle) * (tunnelRadius);
-			panel.rotation.x = Math.PI/2.0;
-			panel.up.set(0,0,1);
-			panel.lookAt(new THREE.Vector3());
+			var angle = 1 + sector * p;	///l'1 non servirebbe ma senza ho problemi
+										//con la rotazione del pannello 0 (mistero)
+										
+			//angolo negativo per disporli in senso orario
+			panel.position.x = Math.cos(-angle) * tunnelRadius;
+			panel.position.y = Math.sin(-angle) * tunnelRadius;
+			
+			panel.up.set(0,0,1);			
+			panel.lookAt(new THREE.Vector3(0,0,0));
 		
 			for(var v=0;v<nVideos;v++) {
 				var videoElement = generateThumb( p*nVideos + v, panelElement);
@@ -134,7 +136,15 @@ $( document ).ready(function() {
 		var fov = getOptimalFov();
 		camera = new THREE.PerspectiveCamera( fov, window.innerWidth/window.innerHeight, 1, tunnelRadius*5 );
 		
-		panels[1].updateMatrixWorld();		//su questa riga ho perso una mattina
+		for(var p=0; p<nCATEGORIES; p++) {
+			panels[p].updateMatrixWorld();		//su questa riga ho perso una mattina
+			//console.log("panel",p,panels[p].rotation);
+		}
+		
+		for(var v=0; v<nVideos*2; v++) {
+			//console.log(v, videos[v].rotation);
+		}
+		
 		var videoWorldPosition = videos[11].localToWorld( new THREE.Vector3() );
 		camera.position.z = videoWorldPosition.z;
 		//camera.rotation.x += Math.PI/2.0 + cameraInclination;
@@ -171,10 +181,6 @@ $( document ).ready(function() {
 		return fov;
 	}
 	
-	function initTweens() {
-		var tween = new TWEEN.Tween();
-	}
-
 	function animate() {
 
 		requestAnimationFrame( animate );
@@ -252,25 +258,82 @@ $( document ).ready(function() {
 
 
 	//ANIMATIONS
+	
+	function initTweens() {
+		
+	}
+	
 	function zoomToVideo(e) {
 
 	}
 	
 	function zoomOutVideo(e){
-	
-		camera.position = cameraBeforeZooming.position;
-		camera.rotation = cameraBeforeZooming.rotation;
 		
-		videos[zoomedVideo].position = videoBeforeZooming.position;
-		videos[zoomedVideo].rotation = videoBeforeZooming.rotation;
 		//console.log( $(videos[zoomedVideo].element).children('video') );
-		$('video').remove();
+		$('video').fadeOut("slow", function(){
+      		$(this).remove();
+      	});
 		//var videoDivId = '#thumbdiv' + zoomedVideo;
 		//console.log(videoDivId);
 		//console.log($('#thumbdiv9').parent());
-
 		
-		zoomed = false;
+		////////////////DO NOT DELETE - operations without animation:
+		//camera.position = cameraBeforeZooming.position;
+		//camera.rotation = cameraBeforeZooming.rotation;
+		//videos[zoomedVideo].position = videoBeforeZooming.position;
+		//videos[zoomedVideo].rotation = videoBeforeZooming.rotation;
+		///////////////////////////////////////////////////
+		
+		var duration = 100;
+		
+		var start = {
+							cpx: camera.position.x,
+							cpy: camera.position.y,
+							cpz: camera.position.z,
+							crx: camera.rotation.x,
+							cry: camera.rotation.y,
+							//crz: camera.rotation.z,
+							vpx: videos[zoomedVideo].position.x,
+							vpy: videos[zoomedVideo].position.y,
+							vpz: videos[zoomedVideo].position.z,
+							vrx: videos[zoomedVideo].rotation.x,
+							vry: videos[zoomedVideo].rotation.y,
+							vrz: videos[zoomedVideo].rotation.z
+						};
+		var finish = {
+							cpx: cameraBeforeZooming.position.x,
+							cpy: cameraBeforeZooming.position.y,
+							cpz: cameraBeforeZooming.position.z,
+							crx: cameraBeforeZooming.rotation.x,
+							cry: cameraBeforeZooming.rotation.y,
+							//crz:cameraBeforeZooming.rotation.z,
+							vpx: videoBeforeZooming.position.x,
+							vpy: videoBeforeZooming.position.y,
+							vpz: videoBeforeZooming.position.z,
+							vrx: videoBeforeZooming.rotation.x,
+							vry: videoBeforeZooming.rotation.y,
+							vrz: videoBeforeZooming.rotation.z
+						};
+		zoomTween = new TWEEN.Tween( start )
+									.to( finish, duration )
+									.onUpdate( function() {
+										camera.position.x = start.cpx,
+										camera.position.y = start.cpy,
+										camera.position.z = start.cpz,
+										camera.rotation.x = start.crx,
+										camera.rotation.y = start.cry,
+										//camera.rotation.z = camStart.crz
+										videos[zoomedVideo].position.x = start.vpx,
+										videos[zoomedVideo].position.y = start.vpy,
+										videos[zoomedVideo].position.z = start.vpz,
+										videos[zoomedVideo].rotation.x = start.vrx,
+										videos[zoomedVideo].rotation.y = start.vry,
+										videos[zoomedVideo].rotation.z = start.vrz
+									})
+									.onComplete( function() {
+										zoomed=false;
+									})
+									.start();
 	}
 
 	function displaySearchResults( query ) {
@@ -288,10 +351,10 @@ $( document ).ready(function() {
 
 
 	//jQuery EVENTS
-	$('.thumbdiv').on('click', function(e){
-		zoomToVideo(e);
+	$('.thumbdiv').on('click', function(e){	
 		if(!zoomed)
 		{
+			zoomToVideo(e);
 			zoomed = true;
 			cameraBeforeZooming = camera.clone();
 	
@@ -303,7 +366,7 @@ $( document ).ready(function() {
 			var videoHeight = $('.thumbdiv').height();
 			//get 3D coords of clicked video
 		
-			// DA ANIMARE
+			/////inizio animazione
 			
 			//metti la camera a altezza video
 			var videoWorldPosition = videos[click].localToWorld( new THREE.Vector3() );
@@ -328,6 +391,9 @@ $( document ).ready(function() {
 		  	
 		  	//il video si sposta verso la camera
 		  	videos[click].translateZ(videoWidth);		  	
+
+		  	////////fine animazione
+		  	
 		  	
 		  	//CREARE UNA DIV A PARTE O SOSTITUIRE SOLO I CONTENUTI?
 		  	/*var element = document.createElement('div');*/
@@ -435,9 +501,14 @@ $( document ).ready(function() {
 		}
 	});
 
+	/*
 	Hammer(document.body).on('tap', function(e) {
-		zoomToVideo(e);
+		if(!zoomed)
+			zoomToVideo(e);
+		else
+			zoomOutVideo(e);
 	});
+	*/
 
 	Hammer(document.body).on('swipe', function(e) {
 		if(zoomed) {
