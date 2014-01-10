@@ -302,21 +302,27 @@ $( document ).ready(function() {
 			camera.up.set(0,0,1);
 			camera.lookAt( videoWorldPosition );
 			
-			//sposta la camera verso il video
-			var zoomFactor = 2;
-			//console.log(videoHeight);
- 			var distance = (videoWorldPosition).distanceTo(camera.position);
-			var height = videoHeight*zoomFactor;
-			//ORIGINAL fov FORMULA: /// camera.fov = 2 * Math.atan( height/(2 * dist) ) * ( 180/Math.PI );
-			var optimalDistance = height/ ( 2 * Math.tan( (Math.PI/180) * (camera.fov/2) ))
-			camera.translateZ( - distance + optimalDistance);
-			
 			//il video guarda verso la camera	  	
 		  	var cameraToPanel = videos[click].parent.worldToLocal( camera.position.clone() );
 		  	videos[click].lookAt( cameraToPanel );
+			
+			//sposta la camera verso il video
+ 			var distance = (videoWorldPosition).distanceTo(camera.position);
+			var zoomFactor = 5;
+			var ratio = window.innerWidth / window.innerHeight;
+			var height = videoHeight / ratio * zoomFactor;
+			
+			
+			
+			
+			
+			
+			//ORIGINAL fov FORMULA: /// camera.fov = 2 * Math.atan( height/(2 * dist) ) * ( 180/Math.PI );
+			var optimalDistance = height/ ( 2 * Math.tan( (Math.PI/180) * (camera.fov/2) ))
+			camera.translateZ( - distance + optimalDistance);
 		  	
 		  	//il video si sposta verso la camera
-		  	videos[click].translateZ(videoWidth);
+		  	videos[click].translateZ(videoWidth);		  	
 		  	
 		  	//CREARE UNA DIV A PARTE O SOSTITUIRE SOLO I CONTENUTI?
 		  	/*var element = document.createElement('div');*/
@@ -383,11 +389,11 @@ $( document ).ready(function() {
 			if(e.which == 37)
 				deltaR = -deltaK;
 			if(e.which == 38)
-				deltaH = 500*deltaK;
+				deltaH = 2000*deltaK;
 			if(e.which == 39)
 				deltaR = deltaK;
 			if(e.which == 40)
-				deltaH = 500*(-deltaK);
+				deltaH = 2000*(-deltaK);
 		}
 		else {
 			zoomOutVideo();
@@ -429,8 +435,9 @@ $( document ).ready(function() {
 	});
 
 	Hammer(document.body).on('swipe', function(e) {
-		console.log("ajhcjh");
-		zoomOutVideo(e);
+		if(zoomed) {
+			zoomOutVideo(e);
+		}
 	});
 
 //end of $(document).ready()
