@@ -40,7 +40,6 @@ $( document ).ready(function() {
 		sceneGL = new THREE.Scene();
 			
 		rendererGL = Detector.webgl? new THREE.WebGLRenderer(): new THREE.CanvasRenderer();
-	
 		rendererGL.setSize( window.innerWidth, window.innerHeight );
 		rendererGL.domElement.style.position = 'absolute';
 		document.body.appendChild( rendererGL.domElement );
@@ -177,8 +176,9 @@ $( document ).ready(function() {
 	function animate() {
 
 		requestAnimationFrame( animate );
-	
+		
 		if(!zoomed) {
+			
 			//controls smoothing (OCCHIO AI CALCOLI SULLO 0)
 			if(Math.abs(deltaR) > 0.00001)
 				deltaR *= 0.90;
@@ -215,7 +215,7 @@ $( document ).ready(function() {
 		element.className = 'panel';
 		element.style.height = tunnelHeight;
 		element.style.width = panelWidth;
-	
+		
 		element.innerHTML = '<h1 class="categoryName" id="categoryName' + catid + '">' + 
 								'Categoria ' + catid +
 							'</h1>';
@@ -234,7 +234,7 @@ $( document ).ready(function() {
 	
 		//maybe better as an external html
 		content = '<h3 class="thumbtitle">Titolooooo ' + id + '</h3>' +
-					'<div class="thumbimage" style="background-image:url(./videos/' + ((id % nVideos) + 1) + '.jpg);">' +
+					'<div class="thumbimage" style="background-image:url(videos/' + ((id % nVideos) + 1) + '.jpg);">' +
 						'<div class="playicon"></div>' +
 						'<div class="thumbduration">' +
 							'01:34' +
@@ -397,7 +397,7 @@ $( document ).ready(function() {
 		  	videoid = 1 + click % nVideos;
 		  	$(e.currentTarget).children('.thumbimage').html(
 		  				'<video autoplay controls>' + 
-	  					'<source src="./videos/' + videoid + '.mp4" type="video/mp4">' +
+	  					'<source src="videos/' + videoid + '.mp4" type="video/mp4">' +
 						'Your browser does not support the video tag.' +
 						'</video>');
 		  	/*var playerdiv = new THREE.CSS3DObject( element );
