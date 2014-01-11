@@ -1,0 +1,47 @@
+<html>
+	<head>
+		<title>VideoTunnel</title>
+		<link rel="stylesheet" type="text/css" href="style.css" />
+	</head>
+	<body>
+		<script src="js/jquery-2.0.3.min.js"></script>
+		<script src="js/three.min.js"></script>
+			
+		<script>
+			$(document).ready( function() {
+				console.log("starting WebGL tests");
+				
+				// Creates GL context
+  				var gl;
+  				var canvas = $("#glcanvas").get(0);
+				
+				if (!window.WebGLRenderingContext) {
+    				// the browser doesn't even know what WebGL is
+    				console.log("Browser not aware of WebGL technology");
+    			} else {
+  				
+  					var contextNames = ['webgl','experimental-webgl','moz-webgl','webkit-3d'];
+				
+					for(var i = 0; i < contextNames.length; i++){
+						try {
+							gl = canvas.getContext( contextNames[i] );
+							console.log(contextNames[i], gl);
+						}
+						catch(e) {
+							alert('Exception catched in getContext: ' + e.toString());
+							return;
+						}
+					}
+				 }
+ 			});
+ 		</script>
+ 		
+ 		<div>
+ 			Apri la console per vedere i risultati di "canvas.getContext()"
+ 		</div>
+		<canvas id="glcanvas">
+			HTML5 canvas not supported by your browser
+		</canvas>
+		
+	</body>
+</html>

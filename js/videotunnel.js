@@ -38,18 +38,9 @@ $( document ).ready(function() {
 	function initCanvas() {
 
 		sceneGL = new THREE.Scene();
+			
+		rendererGL = Detector.webgl? new THREE.WebGLRenderer(): new THREE.CanvasRenderer();
 	
-		var supportsWebGL = function() {
-								try {
-									return !! window.WebGLRenderingContext && !! document.createElement( 'canvas' ).getContext( 'experimental-webgl' );
-								} catch( e ) {	
-									return false;
-								}
-							};
-		if(supportsWebGL)
-			rendererGL = new THREE.WebGLRenderer();
-		else
-			rendererGL = new THREE.CanvasRenderer();
 		rendererGL.setSize( window.innerWidth, window.innerHeight );
 		rendererGL.domElement.style.position = 'absolute';
 		document.body.appendChild( rendererGL.domElement );
@@ -88,6 +79,8 @@ $( document ).ready(function() {
 		sceneCSS = new THREE.Scene();
 
 		rendererCSS = new THREE.CSS3DRenderer();
+		//rendererCSS = new THREE.CSS2DRenderer();
+		
 		rendererCSS.setSize( window.innerWidth, window.innerHeight );
 		rendererCSS.domElement.style.position = 'absolute';
 		document.body.appendChild( rendererCSS.domElement );
