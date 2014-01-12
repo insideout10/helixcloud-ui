@@ -261,6 +261,9 @@ $( document ).ready(function() {
 	}
 	
 	function zoomOutVideo(e){
+	
+		var baseURL = location.pathname;
+		history.pushState(null, null, baseURL);
 		
 		//console.log( $(videos[zoomedVideo].element).children('video') );
 		$('video').fadeOut("slow", function(){
@@ -343,16 +346,33 @@ $( document ).ready(function() {
 
 
 
-	//jQuery EVENTS
+	//EVENTS
+	window.addEventListener('popstate', function(e) {
+    	//da sistemare considerando che l'evento è triggerato anche a inizio app
+    	if(zoomed) {
+    		zoomOutVideo(e);
+    	} else {
+    		
+    	}
+	});
+	
 	$('.thumbdiv').on('click', function(e){	
 		if(!zoomed)
 		{
 			zoomToVideo(e);
 			zoomed = true;
+			
 			cameraBeforeZooming = camera.clone();
 	
 			var click = (e.currentTarget.idName).replace('thumbdiv','');
 			zoomedVideo = click;
+			
+			var newURL = location.href;
+			if (newURL[newURL.length - 1] == "/")
+				newURL = newURL.substring(0, (newURL.length - 1) );
+			newURL += "?v=" + zoomedVideo;
+			history.pushState(null, null, newURL );
+			
 			videoBeforeZooming = videos[click].clone();
 			
 			var videoWidth = $('.thumbdiv').width();
