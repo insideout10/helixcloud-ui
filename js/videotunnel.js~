@@ -33,6 +33,11 @@ $( document ).ready(function() {
 	initCanvas();
 	initCSS3D();
 	initCamera();
+	
+	zoomedVideo = 8;
+	if(zoomedVideo)
+		zoomToVideo();
+	
 	animate();
 
 	function initCanvas() {
@@ -219,21 +224,20 @@ $( document ).ready(function() {
 		element.innerHTML = '<h1 class="categoryName" id="categoryName' + catid + '">' + 
 								'Categoria ' + catid +
 							'</h1>';
-	
+
 		return element;
 	}
 
 	//get video thumb with info (call to Helix API for details on video)
 	function generateThumb(id, panelElem) {
-	
 		var element = document.createElement( 'div' );
 		element.className = 'thumbdiv';
-		element.idName = 'thumbdiv'+ id;	//important! to couple css with 3d object
+		element.idName = 'thumbdiv'+ id;
 		element.style.height = 0.8 * $(panelElem).height() / (videosPerColumn + 1);
 		element.style.width = 0.8 * $(panelElem).width() / videosPerRow + 1;
 	
 		//maybe better as an external html
-		content = '<h3 class="thumbtitle">Titolooooo ' + id + '</h3>' +
+		content =	'<h3 class="thumbtitle">Titolooooo ' + id + '</h3>' +
 					'<div class="thumbimage" style="background-image:url(videos/' + ((id % nVideos) + 1) + '.jpg);">' +
 						'<div class="playicon"></div>' +
 						'<div class="thumbduration">' +
@@ -256,17 +260,66 @@ $( document ).ready(function() {
 		
 	}
 	
-	function zoomToVideo(e) {
+	function zoomToVideo() {
+		
+		zoomed = true;
+		var videoid = 1 + zoomedVideo % nVideos;
 
+  		$(videos[zoomedVideo].element).find('.thumbimage').html(
+			'<video autoplay controls>' + 
+			// FIX THIS URL !!!!!!!!
+			'<source src="videotunnel/videos/' + (1 + (zoomedVideo % nVideos)) + '.mp4" type="video/mp4">' +
+			'Your browser does not support the video tag.' +
+			'</video>'
+		);
+		
+		cameraBeforeZooming = camera.clone();
+	
+		var newURL = location.href;
+		if (newURL[newURL.length - 1] == "/")
+			newURL = newURL.substring(0, (newURL.length - 1) );
+		newURL += "?v=" + zoomedVideo;
+		history.pushState(null, null, newURL );
+		
+		videoBeforeZooming = videos[zoomedVideo].clone();
+		
+		var videoWidth = $('.thumbdiv').width();
+		var videoHeight = $('.thumbdiv').height();
+		//get 3D coords of clicked video
+	
+		/////inizio animazione
+		
+		//metti la camera a altezza video
+		var videoWorldPosition = videos[zoomedVideo].localToWorld( new THREE.Vector3() );
+		camera.position.z = videoWorldPosition.z;
+		
+		//la camera guarda verso il video
+		camera.up.set(0,0,1);
+		camera.lookAt( videoWorldPosition );
+		
+		//il video guarda verso la camera	  	
+	  	var cameraToPanel = videos[zoomedVideo].parent.worldToLocal( camera.position.clone() );
+	  	videos[zoomedVideo].lookAt( cameraToPanel );
+		
+		//sposta la camera verso il video
+		var distance = (videoWorldPosition).distanceTo(camera.position);
+		var zoomFactor = 5;
+		var ratio = window.innerWidth / window.innerHeight;
+		var height = videoHeight / ratio * zoomFactor;
+		//ORIGINAL fov FORMULA: /// camera.fov = 2 * Math.atan( height/(2 * dist) ) * ( 180/Math.PI );
+		var optimalDistance = height/ ( 2 * Math.tan( (Math.PI/180) * (camera.fov/2) ))
+		camera.translateZ( - distance + optimalDistance);
+	  	console.log("optimalDistance: ", optimalDistance);
+	  	
+	  	//il video si sposta verso la camera
+	  	videos[zoomedVideo].translateZ(videoWidth);
+
+	  	////////fine animazione
 	}
 	
-	function zoomOutVideo(e){
-		//var baseURL = (location.pathname).split("/");
-		//baseURL.pop();
-		//baseURL = baseURL.join("/");
-		//baseURL += "/";
+	function zoomOutVideo(){
+	
 		var baseURL = location.pathname;
-		console.log(baseURL);
 		history.pushState(null, null, baseURL);
 		
 		//console.log( $(videos[zoomedVideo].element).children('video') );
@@ -353,93 +406,22 @@ $( document ).ready(function() {
 	//EVENTS
 	window.addEventListener('popstate', function(e) {
     	//da sistemare considerando che l'evento è triggerato anche a inizio app
-    	if(zoomed) {
-    		zoomOutVideo(e);
-    	} else {
+    	//if(zoomed) {
+    	//	zoomOutVideo();
+    	//} else {
     		
-    	}
+    	//}
 	});
 	
 	$('.thumbdiv').on('click', function(e){	
 		if(!zoomed)
 		{
-			zoomToVideo(e);
-			zoomed = true;
-			
-			cameraBeforeZooming = camera.clone();
-	
-			var click = (e.currentTarget.idName).replace('thumbdiv','');
-			zoomedVideo = click;
-			
-			var newURL = location.href;
-			if (newURL[newURL.length - 1] == "/")
-				newURL = newURL.substring(0, (newURL.length - 1) );
-			newURL += "?v=" + zoomedVideo;
-			history.pushState(null, null, newURL );
-			
-			videoBeforeZooming = videos[click].clone();
-			
-			var videoWidth = $('.thumbdiv').width();
-			var videoHeight = $('.thumbdiv').height();
-			//get 3D coords of clicked video
-		
-			/////inizio animazione
-			
-			//metti la camera a altezza video
-			var videoWorldPosition = videos[click].localToWorld( new THREE.Vector3() );
-			camera.position.z = videoWorldPosition.z;
-			
-			//la camera guarda verso il video
-			camera.up.set(0,0,1);
-			camera.lookAt( videoWorldPosition );
-			
-			//il video guarda verso la camera	  	
-		  	var cameraToPanel = videos[click].parent.worldToLocal( camera.position.clone() );
-		  	videos[click].lookAt( cameraToPanel );
-			
-			//sposta la camera verso il video
- 			var distance = (videoWorldPosition).distanceTo(camera.position);
-			var zoomFactor = 5;
-			var ratio = window.innerWidth / window.innerHeight;
-			var height = videoHeight / ratio * zoomFactor;
-			//ORIGINAL fov FORMULA: /// camera.fov = 2 * Math.atan( height/(2 * dist) ) * ( 180/Math.PI );
-			var optimalDistance = height/ ( 2 * Math.tan( (Math.PI/180) * (camera.fov/2) ))
-			camera.translateZ( - distance + optimalDistance);
-		  	
-		  	//il video si sposta verso la camera
-		  	videos[click].translateZ(videoWidth);		  	
-
-		  	////////fine animazione
-		  	
-		  	
-		  	//CREARE UNA DIV A PARTE O SOSTITUIRE SOLO I CONTENUTI?
-		  	/*var element = document.createElement('div');*/
-		  	
-		  	//var w = $(e.currentTarget).children('.thumbimage').width();
-		  	//var h = $(e.currentTarget).children('.thumbimage').height();
-		  	
-		  	videoid = 1 + click % nVideos;
-		  	$(e.currentTarget).children('.thumbimage').html(
-		  				'<video autoplay controls>' + 
-	  					'<source src="videos/' + videoid + '.mp4" type="video/mp4">' +
-						'Your browser does not support the video tag.' +
-						'</video>');
-		  	/*var playerdiv = new THREE.CSS3DObject( element );
-		
-			playerdiv.position.x = videos[click].position.x;
-			playerdiv.position.y = videos[click].position.y;
-			playerdiv.position.z = videos[click].position.z;
-			playerdiv.rotation.x = videos[click].rotation.x;
-			playerdiv.rotation.y = videos[click].rotation.y;
-			playerdiv.rotation.z = videos[click].rotation.z;
-		
-			sceneCSS.add( playerdiv );*/
-		  	
-		  	
-		 }
-		 else {
-		 	//pause or play video
-		 }
+			zoomedVideo = (e.currentTarget.idName).replace('thumbdiv','');
+			zoomToVideo( e.currentTarget );
+		}
+		else {
+			//pause or play video
+		}
 	});
 
 
@@ -521,15 +503,15 @@ $( document ).ready(function() {
 	/*
 	Hammer(document.body).on('tap', function(e) {
 		if(!zoomed)
-			zoomToVideo(e);
+			zoomToVideo();
 		else
-			zoomOutVideo(e);
+			zoomOutVideo();
 	});
 	*/
 
 	Hammer(document.body).on('swipe', function(e) {
 		if(zoomed) {
-			zoomOutVideo(e);
+			zoomOutVideo();
 		}
 	});
 
