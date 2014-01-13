@@ -10,7 +10,6 @@
 		<script src="js/jquery-2.0.3.min.js"></script>
 		<script src="js/Detector.js"></script>
 		<script src="js/three.min.js"></script>
-		<script src="js/CSS2DRenderer.js"></script>
 		<script src="js/CSS3DRenderer.js"></script>
 		<script src="js/hammer.min.js"></script>
 		<script src="js/videotunnel.js"></script>
@@ -23,5 +22,36 @@
 				</div>
 			</div>
 		</div>
+		
+		
+		<div id="videosides">
+			<div id="videoleft">
+				<div class="button">
+					back
+				</div>
+				<div class="button">
+					share
+				</div>
+			</div>
+			<div id="videoright">
+				<div class="button">
+					info
+				</div>
+				<div class="button">
+					docsz
+				</div>
+			</div>
+		</div>
+		<div id="videobottom">
+			<div class="button">
+				video1
+			</div>
+			<div class="button">
+				video2
+			</div>
+			<div class="button">
+				video3
+			</div>
+		</div>	
 	</body>
 </html>

@@ -3,6 +3,7 @@ body {
 	padding:0;
 	width:100%;
 	height:100%;
+	font-size: 200%;
 }
 
 canvas {
@@ -74,6 +75,7 @@ video {
 	width:100%;
 	height:30;
 	float:left;
+	font-size: 50%;
 }
 
 #searchbox {
@@ -101,5 +103,60 @@ video {
 	background-color:black;
 	display:inline-block;
 	float:right;
+}
+
+.videodiv {
+	display:none;
+}
+
+#videosides {
+	position:absolute;
+	width:100%;
+	height:50%;
+	top: 20%;
+	font-size: 50%;
+}
+
+#videoleft {
+	z-index:1;
+	position:relative;
+	background-color:none;
+	height: 100%;
+	width: 27%;
+	float: left;	
+}
+
+#videoright {
+	z-index:1;
+	position:relative;
+	background-color:none;
+	width: 27%;	
+	height: 100%;
+	float: right;
+}
+
+#videobottom {
+	z-index:1;
+	position:absolute;
+	background-color:none;
+	width: 100%;
+	top: 66%;	
+	font-size: 50%;
+}
+
+.button {
+	background-color:gray;
+	margin: 2%;
+	padding: 2%;
+	box-shadow: 0 0 10px #000;
+}
+
+.button:active {
+	box-shadow: 0 0 10px #000 inset;
+}
+
+#videobottom > .button {
+	float:left;
+	display:block;
 }
 

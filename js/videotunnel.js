@@ -11,7 +11,7 @@ $( document ).ready(function() {
 	var videos = [];
 	
 	var nCATEGORIES =10;
-	var panelWidth = 2000;	//in pixels
+	var panelWidth = window.screen.availWidth*2;	//in pixels
 	var tunnelRadius = panelWidth*nCATEGORIES/(Math.PI*2);
 	var tunnelHeight = panelWidth;	//da sistemare
 	
@@ -29,14 +29,15 @@ $( document ).ready(function() {
 	var zoomedVideo;
 
 	var zoomTween;
+	
+	var goingBackInHistory = false;
 
 	initCanvas();
 	initCSS3D();
 	initCamera();
 	
-	zoomedVideo = 8;
-	if(zoomedVideo)
-		zoomToVideo();
+	//does the URL specify a video?
+	checkIfAskedVideo();
 	
 	animate();
 
@@ -50,7 +51,7 @@ $( document ).ready(function() {
 		document.body.appendChild( rendererGL.domElement );
 	
 		//creating cubes for debugging
-		for(var c=100; c<1000; c++) {
+		/*for(var c=100; c<1000; c++) {
 			var geometryC = new THREE.CubeGeometry(5,10,15);
 			var materialC = new THREE.MeshBasicMaterial({color:0xdddd22});
 			materialC.wireframe = true;
@@ -68,7 +69,7 @@ $( document ).ready(function() {
 			cube.rotation.y = y;
 			cube.rotation.z = z;
 			sceneGL.add(cube);
-		}
+		}*/
 	}
 
 	function randomSign() {
@@ -135,17 +136,15 @@ $( document ).ready(function() {
 		
 		for(var p=0; p<nCATEGORIES; p++) {
 			panels[p].updateMatrixWorld();		//su questa riga ho perso una mattina
-			//console.log("panel",p,panels[p].rotation);
 		}
 		
-		for(var v=0; v<nVideos*2; v++) {
-			//console.log(v, videos[v].rotation);
-		}
-		
-		var videoWorldPosition = videos[11].localToWorld( new THREE.Vector3() );
+		var firstLooked = askedVideo();
+		if(firstLooked === undefined)
+			firstLooked = 1;	
+		videoWorldPosition = videos[firstLooked].localToWorld( new THREE.Vector3() );
 		camera.position.z = videoWorldPosition.z;
-		//camera.rotation.x += Math.PI/2.0 + cameraInclination;
 		camera.up.set(0,0,1);
+		//camera.rotateX(Math.PI/2.0 + cameraInclination);
 		camera.lookAt(videoWorldPosition);
 		
 		sceneCSS.add(camera);
@@ -194,9 +193,7 @@ $( document ).ready(function() {
 			else
 				deltaH *= 0.0;
 	
-			camera.rotation.y -= deltaR;	
-			//camera.rotation.x += Math.PI/2.0 + cameraInclination;
-	
+			camera.rotateY(deltaR);
 			camera.position.z += deltaH;
 		}
 		else {
@@ -251,8 +248,37 @@ $( document ).ready(function() {
 		element.innerHTML = content;		
 		return element;
 	}
+	
+	
+	///////////Single Page App URL managing
+	
+	function checkIfAskedVideo() {
+			zoomedVideo = askedVideo();
+			if(zoomedVideo)
+				zoomToVideo();
+	}
+	
+	function askedVideo() {
+		var reqVideo = location.href.split("?");
+		if(reqVideo.length > 1) {
+			reqVideo = reqVideo[1].split("=");
+			return reqVideo[1];
+		}
 
-
+		return undefined;
+	}
+	
+	function changeURL() {
+		if( ! goingBackInHistory) {
+			var URL = location.pathname;
+			if( zoomed )
+				URL += "?v=" + zoomedVideo;
+		
+			history.pushState(URL, URL, URL);
+		}
+	}
+	
+	/////////////////////////
 
 	//ANIMATIONS
 	
@@ -262,30 +288,27 @@ $( document ).ready(function() {
 	
 	function zoomToVideo() {
 		
+		
 		zoomed = true;
+		changeURL();
 		var videoid = 1 + zoomedVideo % nVideos;
 
+		$('.videodiv').show();
+		
   		$(videos[zoomedVideo].element).find('.thumbimage').html(
 			'<video autoplay controls>' + 
 			// FIX THIS URL !!!!!!!!
-			'<source src="videotunnel/videos/' + (1 + (zoomedVideo % nVideos)) + '.mp4" type="video/mp4">' +
+			'<source src="videos/' + (1 + (zoomedVideo % nVideos)) + '.mp4" type="video/mp4">' +
 			'Your browser does not support the video tag.' +
 			'</video>'
 		);
 		
 		cameraBeforeZooming = camera.clone();
-	
-		var newURL = location.href;
-		if (newURL[newURL.length - 1] == "/")
-			newURL = newURL.substring(0, (newURL.length - 1) );
-		newURL += "?v=" + zoomedVideo;
-		history.pushState(null, null, newURL );
 		
 		videoBeforeZooming = videos[zoomedVideo].clone();
 		
-		var videoWidth = $('.thumbdiv').width();
-		var videoHeight = $('.thumbdiv').height();
-		//get 3D coords of clicked video
+		var videoWidth = $(videos[zoomedVideo].element).width();
+		var videoHeight = $(videos[zoomedVideo].element).height();
 	
 		/////inizio animazione
 		
@@ -294,7 +317,6 @@ $( document ).ready(function() {
 		camera.position.z = videoWorldPosition.z;
 		
 		//la camera guarda verso il video
-		camera.up.set(0,0,1);
 		camera.lookAt( videoWorldPosition );
 		
 		//il video guarda verso la camera	  	
@@ -309,18 +331,17 @@ $( document ).ready(function() {
 		//ORIGINAL fov FORMULA: /// camera.fov = 2 * Math.atan( height/(2 * dist) ) * ( 180/Math.PI );
 		var optimalDistance = height/ ( 2 * Math.tan( (Math.PI/180) * (camera.fov/2) ))
 		camera.translateZ( - distance + optimalDistance);
-	  	console.log("optimalDistance: ", optimalDistance);
 	  	
 	  	//il video si sposta verso la camera
 	  	videos[zoomedVideo].translateZ(videoWidth);
 
 	  	////////fine animazione
+	  	
 	}
 	
 	function zoomOutVideo(){
-	
-		var baseURL = location.pathname;
-		history.pushState(null, null, baseURL);
+		
+		$('.videodiv').hide()
 		
 		//console.log( $(videos[zoomedVideo].element).children('video') );
 		$('video').fadeOut("slow", function(){
@@ -359,7 +380,7 @@ $( document ).ready(function() {
 							cpz: cameraBeforeZooming.position.z,
 							crx: cameraBeforeZooming.rotation.x,
 							cry: cameraBeforeZooming.rotation.y,
-							//crz:cameraBeforeZooming.rotation.z,
+							//crz: cameraBeforeZooming.rotation.z,
 							vpx: videoBeforeZooming.position.x,
 							vpy: videoBeforeZooming.position.y,
 							vpz: videoBeforeZooming.position.z,
@@ -375,7 +396,7 @@ $( document ).ready(function() {
 										camera.position.z = start.cpz,
 										camera.rotation.x = start.crx,
 										camera.rotation.y = start.cry,
-										//camera.rotation.z = camStart.crz
+										//camera.rotation.z = start.crz
 										videos[zoomedVideo].position.x = start.vpx,
 										videos[zoomedVideo].position.y = start.vpy,
 										videos[zoomedVideo].position.z = start.vpz,
@@ -385,6 +406,7 @@ $( document ).ready(function() {
 									})
 									.onComplete( function() {
 										zoomed=false;
+										changeURL();
 									})
 									.start();
 	}
@@ -395,7 +417,7 @@ $( document ).ready(function() {
 		
 		//ruota pannelli
 		for(var p=0; p<nCATEGORIES; p++) {
-			panels[p].rotation.y += Math.PI;
+			panels[p].rotateY(Math.PI);
 		}
 	}
 
@@ -405,19 +427,33 @@ $( document ).ready(function() {
 
 	//EVENTS
 	window.addEventListener('popstate', function(e) {
-    	//da sistemare considerando che l'evento è triggerato anche a inizio app
-    	//if(zoomed) {
-    	//	zoomOutVideo();
-    	//} else {
-    		
-    	//}
+    	// DA SISTEMAREEEEE
+    	asked = askedVideo();
+    	
+    	//è richiesto un video
+    	if( asked !== undefined )
+    	{
+    		//se il video è diverso da dove sei già, vacci
+    		if(askedVideo() != zoomedVideo)
+    		{
+    			if(zoomed)
+    				zoomOutVideo();
+    				
+    			//qui è il problema
+    			location.href = history.state;
+    		}
+    	} else {
+    		//è richiesta la home
+    		if(zoomed)
+    			zoomOutVideo();
+    	}
 	});
 	
 	$('.thumbdiv').on('click', function(e){	
 		if(!zoomed)
 		{
 			zoomedVideo = (e.currentTarget.idName).replace('thumbdiv','');
-			zoomToVideo( e.currentTarget );
+			zoomToVideo();
 		}
 		else {
 			//pause or play video
@@ -480,9 +516,9 @@ $( document ).ready(function() {
 		
 			if(vx > vy) {
 				if(dx > 0.0)
-					deltaR = -deltaK*2;
-				else
 					deltaR = deltaK*2;
+				else
+					deltaR = -deltaK*2;
 			}
 			else {
 				if(dy > 0.0)
