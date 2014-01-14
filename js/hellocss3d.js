@@ -39,7 +39,7 @@ function initCSS3D() {
 	element.className = 'element';
 	element.style.backgroundColor = 'yellow';
 	element.style.width = '100px';
-	element.innerHTML = '<a href="www.pieroit.org">mutande uomo</a>';
+	element.innerHTML = '<a href="www.pieroit.org">prova CSS 3D</a>';
 		
 	panel = new THREE.CSS3DObject( element );
 	panel.position.z -=100;
@@ -55,8 +55,8 @@ function animate() {
 
 	requestAnimationFrame( animate );
 	
-	cube.position.x+=1;
-	panel.position.x-=1;
+	cube.rotation.x+=0.1;
+	panel.rotation.z-=0.01;
 	
 	renderer2.render( scene2, camera );
 	renderer.render( scene, camera );

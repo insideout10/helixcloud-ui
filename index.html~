@@ -3,9 +3,12 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<title>VideoTunnel</title>
-		<link rel="stylesheet" type="text/css" href="style.css" />
-	</head>
-	<body>
+		
+		<link rel="stylesheet" href="css/tunnel.css" />
+		<link rel="stylesheet" href="css/leaflet.css" />
+		
+		<!-- tutto da minimizzare -->
+		<script src="js/leaflet.js"></script>
 		<script src="js/tween.min.js"></script>
 		<script src="js/jquery-2.0.3.min.js"></script>
 		<script src="js/Detector.js"></script>
@@ -13,36 +16,76 @@
 		<script src="js/CSS3DRenderer.js"></script>
 		<script src="js/hammer.min.js"></script>
 		<script src="js/videotunnel.js"></script>
-		
+	</head>
+	<body>
 		<div id="header">
 			<div id="searchbox">
-				<textarea id="searchinput">type keyword(z)</textarea>
-				<div id="searchbutton">
-					search
+				<input id="searchinput" type="text" value="type your search">
+				<div id="deletesearch" class="button">x</div>
+				<div class="searchbutton">
+					Search
+				</div>
+				<div id="advancedsearch">
+					Advanced search
+					<div id="searchpanel" class="more">
+						<p>
+						criteri di ricerca </br>
+						criteri di ricerca </br>
+						criteri di ricerca </br> 
+						</p>
+						<div class="searchbutton" id="advsearchbutton">
+							Advanced search
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
 		
 		
-		<div id="videosides">
+		<div class="videodiv" id="videosides">
 			<div id="videoleft">
-				<div class="button">
-					back
+				<div class="button" id="back">
+					Back
 				</div>
-				<div class="button">
-					share
+				<div class="button" id="share">
+					Share
+					<div class="more">
+						<ul>
+							<li>Facebook</li>
+							<li>Twitter</li>
+							<li>LinkedIn</li>
+						</ul>
+					</div>
 				</div>
 			</div>
 			<div id="videoright">
 				<div class="button">
-					info
+					Map
+					<div class="more">
+						<div id="map"></div>
+					</div>
 				</div>
 				<div class="button">
-					docsz
+					Info
+					<div class="more">
+						<p>
+						Ambarabà ciccì coccò, tre galline sul comò, che facevano l'amore con la figlia del dottore. Il dottore si ammalò, ambaraba ciccì coccò
+						</p>
+					</div>
+				</div>
+				<div class="button">
+					Docs
+					<div class="more">
+						<p>Qui i documenti relativi al video, ad esempio:
+						<ul>
+							<li><a href="docs/1.pdf">More info</a></li>
+							<li><a href="docs/2.pdf">White paper</a></li>
+						</ul></p>
+					</div>
 				</div>
 			</div>
 		</div>
-		<div id="videobottom">
+		<div class="videodiv" id="videobottom">
 			<div class="button">
 				video1
 			</div>

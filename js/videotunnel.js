@@ -27,11 +27,15 @@ $( document ).ready(function() {
 	var cameraBeforeZooming;
 	var videoBeforeZooming;
 	var zoomedVideo;
-
+	
 	var zoomTween;
 	
+	var animationTime = 100;
+	
+	var map;
+	
 	var goingBackInHistory = false;
-
+	
 	initCanvas();
 	initCSS3D();
 	initCamera();
@@ -45,7 +49,13 @@ $( document ).ready(function() {
 
 		sceneGL = new THREE.Scene();
 			
-		rendererGL = Detector.webgl? new THREE.WebGLRenderer(): new THREE.CanvasRenderer();
+		//fallback for non-webGL browsers
+		if(Detector.webgl)
+			rendererGL = new THREE.WebGLRenderer({ antialiasing: true });
+		else
+			rendererGL = new THREE.CanvasRenderer({ antialiasing: true });
+		
+		rendererGL.setClearColor( 0xdddddd, 1 );	
 		rendererGL.setSize( window.innerWidth, window.innerHeight );
 		rendererGL.domElement.style.position = 'absolute';
 		document.body.appendChild( rendererGL.domElement );
@@ -86,6 +96,7 @@ $( document ).ready(function() {
 		rendererCSS = new THREE.CSS3DRenderer();
 		//rendererCSS = new THREE.CSS2DRenderer();
 		
+		rendererCSS.setClearColor( 0xbbbbbb, 1 );
 		rendererCSS.setSize( window.innerWidth, window.innerHeight );
 		rendererCSS.domElement.style.position = 'absolute';
 		document.body.appendChild( rendererCSS.domElement );
@@ -249,6 +260,19 @@ $( document ).ready(function() {
 		return element;
 	}
 	
+	function initMap() {
+		if(map === undefined) {
+			map = L.map('map').setView([41.8941, 12.50772], 10);
+			L.tileLayer('http://otile2.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
+						{
+							attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
+							maxZoom: 18
+						}).addTo(map);
+		
+			//open the panel where there is a #map			
+			$('.more').find('#map').parent().show();
+		}
+	}	
 	
 	///////////Single Page App URL managing
 	
@@ -291,9 +315,10 @@ $( document ).ready(function() {
 		
 		zoomed = true;
 		changeURL();
+		initMap();
 		var videoid = 1 + zoomedVideo % nVideos;
 
-		$('.videodiv').show();
+		$('.videodiv').show( animationTime );
 		
   		$(videos[zoomedVideo].element).find('.thumbimage').html(
 			'<video autoplay controls>' + 
@@ -341,7 +366,7 @@ $( document ).ready(function() {
 	
 	function zoomOutVideo(){
 		
-		$('.videodiv').hide()
+		$('.videodiv').hide();
 		
 		//console.log( $(videos[zoomedVideo].element).children('video') );
 		$('video').fadeOut("slow", function(){
@@ -358,7 +383,7 @@ $( document ).ready(function() {
 		//videos[zoomedVideo].rotation = videoBeforeZooming.rotation;
 		///////////////////////////////////////////////////
 		
-		var duration = 100;
+		var duration = animationTime;
 		
 		var start = {
 							cpx: camera.position.x,
@@ -420,10 +445,15 @@ $( document ).ready(function() {
 			panels[p].rotateY(Math.PI);
 		}
 	}
-
-
-
-
+	
+	function hideSearchResults() {
+		console.log("torno a capo");
+		
+		//ruota pannelli
+		for(var p=0; p<nCATEGORIES; p++) {
+			panels[p].rotateY(Math.PI);
+		}
+	}
 
 	//EVENTS
 	window.addEventListener('popstate', function(e) {
@@ -460,21 +490,59 @@ $( document ).ready(function() {
 		}
 	});
 
-
-	$('h1').on('click', function(e){
-		//console.log( e );
+	$('#videoright .button').on('click', function(e){
+		
+		var div = $(this).children('.more');
+		
+		//se non è già aperto
+		if( div.css('display') == 'none' )
+		{
+			//apri div
+			div.show( animationTime );
+			//chiudi le altre
+			$('#videoright .more').not(div).hide( animationTime );
+		}
 	});
-
-	$('div').on('click', function(e){
-		//console.log( e.currentTarget );
+	
+	$('#back').on('click', function(e){
+		zoomOutVideo();
+	});
+	
+	$('#share').on('click', function(e){
+		var div = $(this).children('.more');
+		if( div.css('display') == 'none' )
+			div.show( animationTime );
+		else
+			div.hide( animationTime );
+	});
+	
+	$('#advancedsearch').on('click', function(e){
+		var div = $(this).children('.more');
+		if( div.css('display') == 'none' )
+			div.show( animationTime );
+		else
+			div.hide( animationTime );
 	});
 
 	$('#searchinput').on('click', function(e){
-		$(this).text('');
+		$(this).val('');
+		$(this).css('color', 'black');
+		$('#deletesearch').show( animationTime );
+		$('#advancedsearch').children('.more').hide( animationTime );
+		$('#advancedsearch').show( animationTime );
+	});
+	
+	$('#deletesearch').on('click', function(e){
+		$('#searchinput').val('');
+		$(this).hide();
+		$('#advancedsearch').hide( animationTime );
+		$('#advancedsearch').children('.more').hide( animationTime );
+		hideSearchResults();
 	});
 
-	$('#searchbutton').on('click', function(e){
+	$('.searchbutton').on('click', function(e){
 		var query = $('#searchinput').val();
+		$('#advancedsearch').hide( animationTime );
 		displaySearchResults( query );
 	});
 
