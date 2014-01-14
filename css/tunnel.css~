@@ -98,7 +98,7 @@ video {
 	color:white;
 	background-color:black;
 	display:inline-block;
-	float:right;
+	float:left;
 	margin:0;
 	padding:1px;
 	cursor:pointer;

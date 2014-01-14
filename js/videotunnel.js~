@@ -10,7 +10,7 @@ $( document ).ready(function() {
 	var panels = [];
 	var videos = [];
 	
-	var nCATEGORIES =10;
+	var nCATEGORIES = 10;
 	var panelWidth = window.screen.availWidth*2;	//in pixels
 	var tunnelRadius = panelWidth*nCATEGORIES/(Math.PI*2);
 	var tunnelHeight = panelWidth;	//da sistemare
@@ -19,7 +19,7 @@ $( document ).ready(function() {
 	var videosPerRow = 3;
 	var videosPerColumn = 4;
 	
-	var deltaK = 0.02;
+	var deltaK = 0.05;
 	var deltaR = 0.0;
 	var deltaH = 0.0;
 
@@ -28,9 +28,9 @@ $( document ).ready(function() {
 	var videoBeforeZooming;
 	var zoomedVideo;
 	
-	var zoomTween;
+	var animationTime = 1000;
 	
-	var animationTime = 100;
+	var searchIsOn = false;
 	
 	var map;
 	
@@ -54,8 +54,8 @@ $( document ).ready(function() {
 			rendererGL = new THREE.WebGLRenderer({ antialiasing: true });
 		else
 			rendererGL = new THREE.CanvasRenderer({ antialiasing: true });
-		
-		rendererGL.setClearColor( 0xbbbbbb, 1 );	
+
+		rendererGL.setClearColor( 0xdddddd, 1 );	
 		rendererGL.setSize( window.innerWidth, window.innerHeight );
 		rendererGL.domElement.style.position = 'absolute';
 		document.body.appendChild( rendererGL.domElement );
@@ -194,24 +194,28 @@ $( document ).ready(function() {
 		
 		if(!zoomed) {
 			
-			//controls smoothing (OCCHIO AI CALCOLI SULLO 0)
-			if(Math.abs(deltaR) > 0.00001)
+			//rotation controls (with smoothing)
+			if(Math.abs(deltaR) > 0.00001) {
 				deltaR *= 0.90;
+				camera.rotateY(deltaR);
+			}
 			else
 				deltaR = 0.0;
-			if(Math.abs(deltaH) > 0.00001)
+			
+			//up/down controls (with smoothing)	
+			if(Math.abs(deltaH) > 0.00001) {
 				deltaH *= 0.90;
+				camera.position.z += deltaH;
+			}
 			else
 				deltaH *= 0.0;
 	
-			camera.rotateY(deltaR);
-			camera.position.z += deltaH;
-		}
-		else {
-			//animations with disabled controls
-			TWEEN.update();
+			
+			
 		}
 		
+		//animations update
+		TWEEN.update();
 		
 		render();
 	}
@@ -299,6 +303,7 @@ $( document ).ready(function() {
 				URL += "?v=" + zoomedVideo;
 		
 			history.pushState(URL, URL, URL);
+			console.log("change URL to ", URL);
 		}
 	}
 	
@@ -312,10 +317,11 @@ $( document ).ready(function() {
 	
 	function zoomToVideo() {
 		
-		
-		zoomed = true;
+		zoomed=true;
 		changeURL();
+		
 		initMap();
+										
 		var videoid = 1 + zoomedVideo % nVideos;
 
 		$('.videodiv').show( animationTime );
@@ -326,7 +332,7 @@ $( document ).ready(function() {
 			'<source src="videos/' + (1 + (zoomedVideo % nVideos)) + '.mp4" type="video/mp4">' +
 			'Your browser does not support the video tag.' +
 			'</video>'
-		);
+		).fadeIn( animationTime );
 		
 		cameraBeforeZooming = camera.clone();
 		
@@ -350,7 +356,7 @@ $( document ).ready(function() {
 		
 		//sposta la camera verso il video
 		var distance = (videoWorldPosition).distanceTo(camera.position);
-		var zoomFactor = 5;
+		var zoomFactor = 4;
 		var ratio = window.innerWidth / window.innerHeight;
 		var height = videoHeight / ratio * zoomFactor;
 		//ORIGINAL fov FORMULA: /// camera.fov = 2 * Math.atan( height/(2 * dist) ) * ( 180/Math.PI );
@@ -358,15 +364,70 @@ $( document ).ready(function() {
 		camera.translateZ( - distance + optimalDistance);
 	  	
 	  	//il video si sposta verso la camera
-	  	videos[zoomedVideo].translateZ(videoWidth);
+	  	videos[zoomedVideo].translateZ(videoHeight);
 
-	  	////////fine animazione
+	  	////////ANIMAZIONE!!!
+		var start = {
+						cpx: cameraBeforeZooming.position.x,
+						cpy: cameraBeforeZooming.position.y,
+						cpz: cameraBeforeZooming.position.z,
+						crx: cameraBeforeZooming.rotation.x,
+						cry: cameraBeforeZooming.rotation.y,
+						//crz: cameraBeforeZooming.rotation.z,
+						vpx: videoBeforeZooming.position.x,
+						vpy: videoBeforeZooming.position.y,
+						vpz: videoBeforeZooming.position.z,
+						vrx: videoBeforeZooming.rotation.x,
+						vry: videoBeforeZooming.rotation.y,
+						vrz: videoBeforeZooming.rotation.z	
+					};
+		var finish = {	
+						cpx: camera.position.x,
+						cpy: camera.position.y,
+						cpz: camera.position.z,
+						crx: camera.rotation.x,
+						cry: camera.rotation.y,
+						//crz: camera.rotation.z,
+						vpx: videos[zoomedVideo].position.x,
+						vpy: videos[zoomedVideo].position.y,
+						vpz: videos[zoomedVideo].position.z,
+						vrx: videos[zoomedVideo].rotation.x,
+						vry: videos[zoomedVideo].rotation.y,
+						vrz: videos[zoomedVideo].rotation.z
+					};
+					
+		zoomTween = new TWEEN.Tween( start )
+									.to( finish, animationTime )
+									.onUpdate( function() {
+										camera.position.x = start.cpx,
+										camera.position.y = start.cpy,
+										camera.position.z = start.cpz,
+										camera.rotation.x = start.crx,
+										camera.rotation.y = start.cry,
+										//camera.rotation.z = start.crz
+										videos[zoomedVideo].position.x = start.vpx,
+										videos[zoomedVideo].position.y = start.vpy,
+										videos[zoomedVideo].position.z = start.vpz,
+										videos[zoomedVideo].rotation.x = start.vrx,
+										videos[zoomedVideo].rotation.y = start.vry,
+										videos[zoomedVideo].rotation.z = start.vrz
+									})
+									.onComplete( function() {
+										//nothing
+									})
+									.start();
+	  	
+	  	////////////////////
 	  	
 	}
 	
 	function zoomOutVideo(){
 		
-		$('.videodiv').hide();
+		zoomed = false;
+		changeURL();
+		zoomed = true;	//needs to be true until end of animation
+		
+		$('.videodiv').hide( animationTime );
 		
 		//console.log( $(videos[zoomedVideo].element).children('video') );
 		$('video').fadeOut("slow", function(){
@@ -382,8 +443,6 @@ $( document ).ready(function() {
 		//videos[zoomedVideo].position = videoBeforeZooming.position;
 		//videos[zoomedVideo].rotation = videoBeforeZooming.rotation;
 		///////////////////////////////////////////////////
-		
-		var duration = animationTime;
 		
 		var start = {
 							cpx: camera.position.x,
@@ -414,7 +473,7 @@ $( document ).ready(function() {
 							vrz: videoBeforeZooming.rotation.z
 						};
 		zoomTween = new TWEEN.Tween( start )
-									.to( finish, duration )
+									.to( finish, animationTime )
 									.onUpdate( function() {
 										camera.position.x = start.cpx,
 										camera.position.y = start.cpy,
@@ -431,32 +490,59 @@ $( document ).ready(function() {
 									})
 									.onComplete( function() {
 										zoomed=false;
-										changeURL();
+										zoomedVideo=undefined;
 									})
 									.start();
 	}
 
 	function displaySearchResults( query ) {
+		
 		//chiamata a Helix per i risultati di ricerca
 		console.log(query);
 		
-		//ruota pannelli
-		for(var p=0; p<nCATEGORIES; p++) {
-			panels[p].rotateY(Math.PI);
+		//gira i pannelli e entra in modalità ricerca
+		if( !searchIsOn ) {
+			rotatePanels();
+			searchIsOn = true;
 		}
 	}
 	
 	function hideSearchResults() {
-		console.log("torno a capo");
+		
+		//qui togliere i ris della ricerca
+			
+		if( searchIsOn ) {
+			rotatePanels();
+			searchIsOn = false;			
+		}
+	}
+	
+	function rotatePanels() {
+		if(zoomed)
+			zoomOutVideo();
+		
+		var start = [];
+		var finish = [];
+		for(var pa=0; pa<nCATEGORIES; pa++) {
+			start.push(panels[pa].rotation.y);
+			finish.push(panels[pa].rotation.y + Math.PI);
+		}
 		
 		//ruota pannelli
-		for(var p=0; p<nCATEGORIES; p++) {
-			panels[p].rotateY(Math.PI);
-		}
+		new TWEEN.Tween( start )
+					.to( finish , animationTime )
+					.onUpdate( function() {
+						for(var p=0; p<nCATEGORIES; p++)
+							panels[p].rotation.y = this[p];
+					})
+					.start();
 	}
 
 	//EVENTS
 	window.addEventListener('popstate', function(e) {
+    	
+    	goingBackInHistory = true;
+    	
     	// DA SISTEMAREEEEE
     	asked = askedVideo();
     	
@@ -464,19 +550,21 @@ $( document ).ready(function() {
     	if( asked !== undefined )
     	{
     		//se il video è diverso da dove sei già, vacci
-    		if(askedVideo() != zoomedVideo)
+    		if( asked !== zoomedVideo )
     		{
     			if(zoomed)
     				zoomOutVideo();
-    				
-    			//qui è il problema
-    			location.href = history.state;
+
+    			zoomedVideo = asked;
+    			zoomToVideo();
     		}
     	} else {
     		//è richiesta la home
     		if(zoomed)
     			zoomOutVideo();
     	}
+    	
+    	goingBackInHistory = false;
 	});
 	
 	$('.thumbdiv').on('click', function(e){	
@@ -570,7 +658,9 @@ $( document ).ready(function() {
 				deltaH = 2000*(-deltaK);
 		}
 		else {
-			zoomOutVideo();
+			if( ! $('#searchinput').is(':focus') ) {
+				zoomOutVideo();
+			}
 		}
 	});
 
@@ -584,15 +674,15 @@ $( document ).ready(function() {
 		
 			if(vx > vy) {
 				if(dx > 0.0)
-					deltaR = deltaK*2;
+					deltaR = deltaK;
 				else
-					deltaR = -deltaK*2;
+					deltaR = -deltaK;
 			}
 			else {
 				if(dy > 0.0)
-					deltaH = 2000*deltaK;
+					deltaH = 1000*deltaK;
 				else
-					deltaH = 2000*(-deltaK);
+					deltaH = 1000*(-deltaK);
 			}
 		}
 	});
