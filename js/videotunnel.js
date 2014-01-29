@@ -55,14 +55,14 @@ $( document ).ready(function() {
 		else
 			rendererGL = new THREE.CanvasRenderer({ antialiasing: true });
 
-		rendererGL.setClearColor( 0xdddddd, 1 );	
+		//rendererGL.setClearColor( 0xdddddd, 1 );	
 		rendererGL.setSize( window.innerWidth, window.innerHeight );
 		rendererGL.domElement.style.position = 'absolute';
 		document.body.appendChild( rendererGL.domElement );
 	
 		//creating cubes for debugging
-		/*for(var c=100; c<1000; c++) {
-			var geometryC = new THREE.CubeGeometry(5,10,15);
+		for(var c=100; c<1000; c++) {
+			var geometryC = new THREE.CubeGeometry(5,7,10);
 			var materialC = new THREE.MeshBasicMaterial({color:0xdddd22});
 			materialC.wireframe = true;
 			var cube = new THREE.Mesh(geometryC, materialC);
@@ -79,7 +79,7 @@ $( document ).ready(function() {
 			cube.rotation.y = y;
 			cube.rotation.z = z;
 			sceneGL.add(cube);
-		}*/
+		}
 	}
 
 	function randomSign() {
@@ -96,7 +96,7 @@ $( document ).ready(function() {
 		rendererCSS = new THREE.CSS3DRenderer();
 		//rendererCSS = new THREE.CSS2DRenderer();
 		
-		rendererCSS.setClearColor( 0xbbbbbb, 1 );
+		//rendererCSS.setClearColor( 0xbbbbbb, 1 );
 		rendererCSS.setSize( window.innerWidth, window.innerHeight );
 		rendererCSS.domElement.style.position = 'absolute';
 		document.body.appendChild( rendererCSS.domElement );
